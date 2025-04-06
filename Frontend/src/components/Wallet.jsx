@@ -10,9 +10,9 @@ import {
   useConfig,
 } from "wagmi";
 import { metaMask } from "@wagmi/connectors";
-import { switchChain as switchChainViem } from 'viem/actions'
+import { switchChain as switchChainViem } from "viem/actions";
 import "./Wallet.css";
-import { supportedChains } from '../../config';
+import { supportedChains } from "../../config";
 
 const WALLET_TYPES = {
   METAMASK: "MetaMask",
@@ -22,12 +22,16 @@ const CHAINS = {
   [1]: { name: "Ethereum", icon: "/ethereum.svg" },
   [137]: { name: "Polygon", icon: "/polygon.svg" },
   [80002]: { name: "Polygon Amoy", icon: "/polygon.svg" },
+  [545]: {
+    name: "flow",
+    icon: "https://pbs.twimg.com/profile_images/1683510829290000384/sIySlmWp_400x400.jpg",
+  },
 };
 
 const Wallet = () => {
   const [showChains, setShowChains] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  
+
   const { address, isConnecting, isConnected } = useAccount();
   const { data: balance } = useBalance({ address });
   const { connect } = useConnect();
@@ -45,10 +49,13 @@ const Wallet = () => {
       }
 
       if (address) {
-        signMessage({ message: "請確認您要連接這個網站。" }, {
-          onSuccess: (signature) => console.log("✅ 簽名成功:", signature),
-          onError: (error) => console.error("❌ 簽名失敗:", error),
-        });
+        signMessage(
+          { message: "請確認您要連接這個網站。" },
+          {
+            onSuccess: (signature) => console.log("✅ 簽名成功:", signature),
+            onError: (error) => console.error("❌ 簽名失敗:", error),
+          }
+        );
       }
     } catch (error) {
       console.error("❌ 錢包連接失敗", error);
@@ -62,7 +69,7 @@ const Wallet = () => {
 
   const handleSwitchChain = async (chainId) => {
     try {
-      const chain = supportedChains.find(c => c.id === chainId);
+      const chain = supportedChains.find((c) => c.id === chainId);
       if (!chain) {
         throw new Error(`Chain ${chainId} not supported`);
       }
@@ -81,19 +88,24 @@ const Wallet = () => {
               try {
                 const provider = await config.connectors[0].getProvider();
                 await provider.request({
-                  method: 'wallet_addEthereumChain',
-                  params: [{
-                    chainId: `0x${chainId.toString(16)}`,
-                    chainName: chain.name,
-                    nativeCurrency: chain.nativeCurrency,
-                    rpcUrls: chain.rpcUrls.default.http,
-                    blockExplorerUrls: [chain.blockExplorers?.default.url],
-                  }],
+                  method: "wallet_addEthereumChain",
+                  params: [
+                    {
+                      chainId: `0x${chainId.toString(16)}`,
+                      chainName: chain.name,
+                      nativeCurrency: chain.nativeCurrency,
+                      rpcUrls: chain.rpcUrls.default.http,
+                      blockExplorerUrls: [chain.blockExplorers?.default.url],
+                    },
+                  ],
                 });
                 // After adding, try switching again
                 await switchChain({ chainId });
                 setShowChains(false);
-                console.log("✅ Chain added and switched to", CHAINS[chainId].name);
+                console.log(
+                  "✅ Chain added and switched to",
+                  CHAINS[chainId].name
+                );
               } catch (addError) {
                 console.error("❌ Failed to add chain:", addError);
                 alert("無法新增網絡，請手動在錢包中添加");
@@ -136,11 +148,14 @@ const Wallet = () => {
         <div className="account-box">
           <div className="wallet-info">
             <div className="chain-dropdown">
-              <div className="chain-selector" onClick={() => setShowChains(!showChains)}>
-                <img 
-                  src={CHAINS[currentChainId]?.icon} 
-                  alt="chain" 
-                  className="chain-icon" 
+              <div
+                className="chain-selector"
+                onClick={() => setShowChains(!showChains)}
+              >
+                <img
+                  src={CHAINS[currentChainId]?.icon}
+                  alt="chain"
+                  className="chain-icon"
                 />
                 <span className="arrow">▼</span>
               </div>
@@ -152,7 +167,11 @@ const Wallet = () => {
                       className="chain-item"
                       onClick={() => handleSwitchChain(Number(id))}
                     >
-                      <img src={chain.icon} alt={chain.name} className="chain-icon" />
+                      <img
+                        src={chain.icon}
+                        alt={chain.name}
+                        className="chain-icon"
+                      />
                       {chain.name}
                     </div>
                   ))}
@@ -162,7 +181,8 @@ const Wallet = () => {
 
             <div className="wallet-address">{shortenAddress(address)}</div>
             <div className="wallet-balance">
-              {balance ? parseFloat(balance.formatted).toFixed(3) : "0"} {balance?.symbol}
+              {balance ? parseFloat(balance.formatted).toFixed(3) : "0"}{" "}
+              {balance?.symbol}
             </div>
             <div className="disconnect-button" onClick={() => disconnect()}>
               <img src="./image.png" alt="Disconnect" />
